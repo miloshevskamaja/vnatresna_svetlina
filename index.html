@@ -1,0 +1,852 @@
+<!DOCTYPE html>
+<html lang="mk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Внатрешна светлина</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --navy-deep:#171B33;
+    --navy-mid:#232A52;
+    --navy-soft:#31396B;
+    --amber:#FFB870;
+    --amber-soft:#FFD9A8;
+    --coral:#FF8FA0;
+    --coral-soft:#FFC2CC;
+    --mint:#8FE9D6;
+    --text-main:#F1F0F7;
+    --text-mute:#A9AFCE;
+    --card-bg: rgba(255,255,255,0.045);
+    --card-border: rgba(255,255,255,0.09);
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;height:100%;}
+  body{
+    font-family:'Inter',sans-serif;
+    background:
+      radial-gradient(circle at 20% 15%, rgba(255,184,112,0.10), transparent 45%),
+      radial-gradient(circle at 85% 80%, rgba(255,143,160,0.10), transparent 50%),
+      linear-gradient(160deg, var(--navy-deep) 0%, var(--navy-mid) 55%, var(--navy-soft) 100%);
+    color:var(--text-main);
+    min-height:100vh;
+    overflow-x:hidden;
+    position:relative;
+  }
+  /* ambient fireflies */
+  .firefly{
+    position:fixed;
+    border-radius:50%;
+    background:var(--amber-soft);
+    opacity:0;
+    pointer-events:none;
+    filter:blur(0.5px);
+    box-shadow:0 0 6px 1px rgba(255,216,168,0.6);
+    animation:drift linear infinite;
+  }
+  @keyframes drift{
+    0%{transform:translateY(0) translateX(0); opacity:0;}
+    10%{opacity:0.7;}
+    50%{opacity:0.9;}
+    90%{opacity:0.3;}
+    100%{transform:translateY(-90vh) translateX(20px); opacity:0;}
+  }
+
+  .app{
+    position:relative;
+    z-index:2;
+    max-width:480px;
+    margin:0 auto;
+    min-height:100vh;
+    display:flex;
+    flex-direction:column;
+    padding:32px 22px 40px;
+  }
+
+  header.brand{
+    text-align:center;
+    margin-bottom:8px;
+  }
+  header.brand .mark{
+    font-family:'Unbounded',sans-serif;
+    font-size:13px;
+    letter-spacing:0.14em;
+    text-transform:uppercase;
+    color:var(--text-mute);
+  }
+
+  .screen{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    animation:fadeIn 0.5s ease;
+  }
+  @keyframes fadeIn{ from{opacity:0; transform:translateY(6px);} to{opacity:1; transform:translateY(0);} }
+
+  /* ---------- HOME ---------- */
+  .home{
+    justify-content:center;
+    gap:26px;
+    text-align:center;
+    padding-top:28px;
+  }
+  .home h1{
+    font-family:'Unbounded',sans-serif;
+    font-size:26px;
+    line-height:1.35;
+    font-weight:600;
+    margin:0 0 4px;
+  }
+  .home p.sub{
+    color:var(--text-mute);
+    font-size:15px;
+    margin:0 0 10px;
+  }
+  .glow-orb{
+    width:104px;height:104px;
+    margin:6px auto 4px;
+    border-radius:50%;
+    background:radial-gradient(circle at 35% 30%, #FFE7C4, var(--amber) 55%, rgba(255,184,112,0) 78%);
+    box-shadow:0 0 50px 12px rgba(255,184,112,0.35);
+    animation:pulse 4.2s ease-in-out infinite;
+  }
+  @keyframes pulse{
+    0%,100%{transform:scale(0.92); box-shadow:0 0 40px 8px rgba(255,184,112,0.28);}
+    50%{transform:scale(1.05); box-shadow:0 0 60px 16px rgba(255,184,112,0.42);}
+  }
+
+  .choice-cards{
+    display:flex;
+    flex-direction:column;
+    gap:14px;
+    margin-top:6px;
+  }
+  .choice-card{
+    display:flex;
+    align-items:center;
+    gap:14px;
+    text-align:left;
+    background:var(--card-bg);
+    border:1px solid var(--card-border);
+    border-radius:20px;
+    padding:18px 18px;
+    cursor:pointer;
+    transition:transform 0.18s ease, background 0.18s ease, border-color 0.18s ease;
+  }
+  .choice-card:hover{ transform:translateY(-2px); background:rgba(255,255,255,0.075); }
+  .choice-card:focus-visible{ outline:2px solid var(--mint); outline-offset:3px; }
+  .choice-card .emoji{ font-size:30px; line-height:1; flex-shrink:0; }
+  .choice-card .txt strong{ display:block; font-size:16.5px; font-weight:600; margin-bottom:3px; }
+  .choice-card .txt span{ font-size:13.5px; color:var(--text-mute); }
+  .choice-card.breathe{ border-color:rgba(255,184,112,0.35); }
+  .choice-card.wall{ border-color:rgba(255,143,160,0.35); }
+
+  .info-toggle{
+    margin-top:28px;
+    text-align:center;
+  }
+  .info-toggle button{
+    background:none;border:none;color:var(--text-mute);
+    font-family:'Inter',sans-serif; font-size:13px;
+    text-decoration:underline; cursor:pointer; padding:6px;
+  }
+
+  .info-screen{ display:flex; flex-direction:column; }
+  .info-scroll{
+    flex:1;
+    overflow-y:auto;
+    padding-right:2px;
+    font-size:13px;
+    line-height:1.6;
+    color:var(--text-mute);
+  }
+  .info-scroll .src{ display:block; margin-top:16px; font-size:11.5px; opacity:0.7; border-top:1px solid var(--card-border); padding-top:12px;}
+  .closing-note{
+    background:linear-gradient(135deg, rgba(255,184,112,0.10), rgba(255,143,160,0.10));
+    border:1px solid rgba(255,184,112,0.25);
+    border-radius:16px;
+    padding:16px 18px;
+  }
+  .closing-note p{ color:var(--text-main); margin:0; }
+
+  .bar-chart{ margin-top:6px; }
+  .bar-row{
+    display:grid;
+    grid-template-columns:auto 1fr auto;
+    align-items:center;
+    gap:10px;
+    margin-bottom:12px;
+  }
+  .bar-row:last-child{ margin-bottom:0; }
+  .bar-label{ font-size:11.5px; color:var(--text-mute); max-width:120px; line-height:1.3; }
+  .bar-track{
+    height:9px;
+    background:rgba(255,255,255,0.06);
+    border-radius:6px;
+    overflow:hidden;
+  }
+  .bar-fill{
+    height:100%;
+    width:0%;
+    border-radius:6px;
+    animation:fillBar 1.1s ease forwards;
+    animation-delay:0.15s;
+  }
+  .bar-fill.amber{ background:linear-gradient(90deg, var(--amber-soft), var(--amber)); }
+  .bar-fill.coral{ background:linear-gradient(90deg, var(--coral-soft), var(--coral)); }
+  .bar-fill.mint{ background:linear-gradient(90deg, #C9F6EC, var(--mint)); }
+  @keyframes fillBar{ to{ width:var(--pct); } }
+  .bar-value{ font-family:'Unbounded',sans-serif; font-size:12.5px; font-weight:600; color:var(--text-main); min-width:32px; text-align:right; }
+
+  @media (max-width:380px){
+    .bar-label{ max-width:84px; font-size:10.5px; }
+  }
+  .info-box{
+    margin-top:12px;
+    background:var(--card-bg);
+    border:1px solid var(--card-border);
+    border-radius:16px;
+    padding:20px 20px 18px;
+    font-size:13px;
+    line-height:1.6;
+    color:var(--text-mute);
+    text-align:left;
+    display:none;
+    max-height:min(70vh, 560px);
+    overflow-y:auto;
+  }
+  .info-box.show{ display:block; animation:fadeIn 0.3s ease; }
+  .info-box strong{ color:var(--text-main); }
+  .info-box .src{ display:block; margin-top:14px; font-size:11.5px; opacity:0.7; border-top:1px solid var(--card-border); padding-top:10px;}
+  .info-section{ margin-bottom:18px; }
+  .info-section:last-of-type{ margin-bottom:0; }
+  .info-section h3{
+    font-family:'Unbounded',sans-serif;
+    font-size:13.5px;
+    font-weight:600;
+    color:var(--text-main);
+    margin:0 0 8px;
+    display:flex; align-items:center; gap:7px;
+  }
+  .info-section p{ margin:0 0 8px; }
+  .stat-grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:8px;
+    margin:10px 0 4px;
+  }
+  .stat-card{
+    background:rgba(255,255,255,0.04);
+    border:1px solid var(--card-border);
+    border-radius:12px;
+    padding:10px 11px;
+  }
+  .stat-card .num{
+    font-family:'Unbounded',sans-serif;
+    font-size:19px;
+    font-weight:700;
+    color:var(--amber);
+    display:block;
+    line-height:1.1;
+    margin-bottom:3px;
+  }
+  .stat-card.coral .num{ color:var(--coral); }
+  .stat-card.mint .num{ color:var(--mint); }
+  .stat-card .lbl{ font-size:11.5px; color:var(--text-mute); line-height:1.35; display:block; }
+  .info-divider{ height:1px; background:var(--card-border); margin:16px 0; border:none; }
+  .goal-list{ margin:0; padding-left:18px; }
+  .goal-list li{ margin-bottom:7px; }
+  .goal-list li:last-child{ margin-bottom:0; }
+
+  /* ---------- SHARED TOP BAR ---------- */
+  .topbar{
+    display:flex;
+    align-items:center;
+    margin-bottom:18px;
+  }
+  .back-btn{
+    background:var(--card-bg);
+    border:1px solid var(--card-border);
+    color:var(--text-main);
+    width:38px;height:38px;
+    border-radius:12px;
+    display:flex;align-items:center;justify-content:center;
+    cursor:pointer;
+    font-size:17px;
+  }
+  .topbar .title{
+    font-family:'Unbounded',sans-serif;
+    font-size:14.5px;
+    letter-spacing:0.02em;
+    margin-left:12px;
+    color:var(--text-mute);
+  }
+
+  /* ---------- BREATHING ---------- */
+  .breathe-screen{
+    justify-content:flex-start;
+    align-items:center;
+    text-align:center;
+  }
+  .breathe-stage{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    width:100%;
+  }
+  .breath-ring-wrap{
+    position:relative;
+    width:230px;height:230px;
+    display:flex;align-items:center;justify-content:center;
+    margin-bottom:30px;
+  }
+  .breath-ring-outer{
+    position:absolute; inset:0;
+    border-radius:50%;
+    border:1px solid rgba(255,184,112,0.25);
+  }
+  .breath-circle{
+    width:120px;height:120px;
+    border-radius:50%;
+    background:radial-gradient(circle at 35% 30%, #FFEBCB, var(--amber) 60%, rgba(255,184,112,0.15) 85%);
+    box-shadow:0 0 60px 10px rgba(255,184,112,0.35);
+    transition:transform 4s cubic-bezier(0.45,0,0.55,1), box-shadow 4s ease;
+    transform:scale(0.62);
+  }
+  .breath-circle.hold{ transition:transform 7s linear, box-shadow 7s linear; transform:scale(1.0); box-shadow:0 0 85px 20px rgba(255,184,112,0.5);}
+  .breath-circle.exhale{ transition:transform 8s cubic-bezier(0.45,0,0.55,1), box-shadow 8s ease; transform:scale(0.62); box-shadow:0 0 40px 6px rgba(255,184,112,0.25);}
+  .breath-word{
+    font-family:'Unbounded',sans-serif;
+    font-size:22px;
+    font-weight:600;
+    min-height:32px;
+    margin-bottom:6px;
+  }
+  .breath-count{
+    color:var(--text-mute);
+    font-size:13.5px;
+  }
+  .cycle-dots{
+    display:flex; gap:8px; margin-top:22px;
+  }
+  .cycle-dots span{
+    width:8px;height:8px;border-radius:50%;
+    background:rgba(255,255,255,0.18);
+    transition:background 0.3s ease;
+  }
+  .cycle-dots span.done{ background:var(--amber); }
+
+  .breathe-complete{
+    text-align:center;
+    padding:20px 6px;
+  }
+  .breathe-complete .icon{ font-size:34px; margin-bottom:10px; }
+  .breathe-complete h2{
+    font-family:'Unbounded',sans-serif;
+    font-size:20px; font-weight:600; margin:0 0 10px;
+  }
+  .breathe-complete p{ color:var(--text-mute); font-size:14.5px; line-height:1.6; margin:0 0 24px;}
+
+  .primary-btn{
+    background:linear-gradient(135deg, var(--coral), #FF6F87);
+    border:none; color:#241019;
+    font-family:'Inter',sans-serif; font-weight:600; font-size:15px;
+    padding:14px 22px; border-radius:14px;
+    cursor:pointer;
+    width:100%;
+    transition:transform 0.15s ease;
+  }
+  .primary-btn:hover{ transform:translateY(-1px); }
+  .ghost-btn{
+    background:none; border:1px solid var(--card-border); color:var(--text-mute);
+    font-size:13.5px; padding:11px 18px; border-radius:12px; cursor:pointer; margin-top:10px; width:100%;
+  }
+
+  /* ---------- KINDNESS WALL ---------- */
+  .wall-screen{ flex:1; display:flex; flex-direction:column; }
+  .wall-intro{ margin-bottom:16px; }
+  .wall-intro h2{ font-family:'Unbounded',sans-serif; font-size:19px; margin:0 0 6px; }
+  .wall-intro p{ color:var(--text-mute); font-size:13.5px; margin:0; line-height:1.5;}
+
+  .wall-canvas{
+    position:relative;
+    flex:1;
+    min-height:340px;
+    max-height:52vh;
+    border-radius:22px;
+    border:1px solid var(--card-border);
+    background:
+      radial-gradient(circle at 25% 20%, rgba(255,143,160,0.08), transparent 40%),
+      radial-gradient(circle at 80% 75%, rgba(143,233,214,0.07), transparent 45%),
+      rgba(255,255,255,0.02);
+    overflow-y:auto;
+    overflow-x:hidden;
+    padding:16px;
+    display:grid;
+    grid-template-columns:repeat(2, 1fr);
+    gap:11px;
+    align-content:start;
+  }
+  .wall-canvas::-webkit-scrollbar{ width:6px; }
+  .wall-canvas::-webkit-scrollbar-thumb{ background:rgba(255,255,255,0.15); border-radius:6px; }
+  @media (max-width:420px){
+    .wall-canvas{ grid-template-columns:1fr; }
+  }
+  .bubble{
+    position:relative;
+    background:rgba(255,255,255,0.06);
+    border:1px solid rgba(255,255,255,0.10);
+    border-radius:16px;
+    padding:11px 13px;
+    font-size:12.5px;
+    line-height:1.5;
+    color:var(--text-main);
+    word-wrap:break-word;
+    overflow-wrap:break-word;
+    animation:settle 0.4s ease, sway 6s ease-in-out infinite 0.4s;
+    backdrop-filter:blur(2px);
+    align-self:start;
+  }
+  .bubble.mine{
+    background:linear-gradient(135deg, rgba(255,143,160,0.22), rgba(255,184,112,0.16));
+    border-color:rgba(255,143,160,0.4);
+    grid-column:1 / -1;
+  }
+  @keyframes settle{
+    from{ opacity:0; transform:translateY(10px) scale(0.96); }
+    to{ opacity:1; transform:translateY(0) scale(1); }
+  }
+  @keyframes sway{
+    0%,100%{ transform:translateY(0px); }
+    50%{ transform:translateY(-3px); }
+  }
+
+  .wall-input-row{
+    display:flex;
+    gap:10px;
+    margin-top:16px;
+  }
+  .wall-input-row textarea{
+    flex:1;
+    resize:none;
+    background:var(--card-bg);
+    border:1px solid var(--card-border);
+    border-radius:14px;
+    color:var(--text-main);
+    font-family:'Inter',sans-serif;
+    font-size:14px;
+    padding:12px 14px;
+    height:48px;
+    line-height:1.4;
+  }
+  .wall-input-row textarea::placeholder{ color:var(--text-mute); }
+  .wall-input-row textarea:focus{ outline:2px solid var(--mint); outline-offset:1px; }
+  .send-btn{
+    flex-shrink:0;
+    background:linear-gradient(135deg, var(--mint), #5FD1BC);
+    border:none; color:#0E2A25; font-weight:700;
+    width:48px;height:48px; border-radius:14px;
+    cursor:pointer; font-size:17px;
+  }
+  .send-hint{ font-size:11.5px; color:var(--text-mute); margin-top:8px; text-align:center;}
+
+  .echo-toast{
+    position:fixed;
+    left:50%; bottom:26px;
+    transform:translateX(-50%) translateY(20px);
+    max-width:400px;
+    width:calc(100% - 44px);
+    background:var(--navy-soft);
+    border:1px solid rgba(255,255,255,0.15);
+    border-radius:16px;
+    padding:14px 16px;
+    font-size:13.5px;
+    line-height:1.5;
+    opacity:0;
+    pointer-events:none;
+    transition:opacity 0.3s ease, transform 0.3s ease;
+    box-shadow:0 10px 40px rgba(0,0,0,0.35);
+    z-index:50;
+  }
+  .echo-toast.show{ opacity:1; transform:translateX(-50%) translateY(0); }
+  .echo-toast .eb{ font-size:11px; text-transform:uppercase; letter-spacing:0.08em; color:var(--mint); display:block; margin-bottom:4px; font-weight:600;}
+
+  @media (max-width:380px){
+    .breath-ring-wrap{ width:190px;height:190px;}
+    .breath-circle{ width:100px;height:100px;}
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    .glow-orb, .firefly, .bubble{ animation:none !important; }
+    .breath-circle{ transition:none !important; }
+  }
+</style>
+</head>
+<body>
+
+<div id="fireflies"></div>
+
+<div class="app">
+
+  <header class="brand"><span class="mark">Внатрешна светлина</span></header>
+
+  <!-- HOME SCREEN -->
+  <div id="screen-home" class="screen home">
+    <div class="glow-orb" aria-hidden="true"></div>
+    <h1>Како се чувствуваш<br>во моментов?</h1>
+    <p class="sub">Избери го она што ти треба сега — нема погрешен избор.</p>
+
+    <div class="choice-cards">
+      <button class="choice-card breathe" onclick="goTo('breathe')">
+        <span class="emoji">🌊</span>
+        <span class="txt">
+          <strong>Ми треба момент за себе</strong>
+          <span>Кратко дишење за да се смириш</span>
+        </span>
+      </button>
+      <button class="choice-card wall" onclick="goTo('wall')">
+        <span class="emoji">💌</span>
+        <span class="txt">
+          <strong>Сакам да споделам / добијам поддршка</strong>
+          <span>Ѕид на љубезност од твоите врсници</span>
+        </span>
+      </button>
+    </div>
+
+    <div class="info-toggle">
+      <button onclick="goTo('info')" id="infoToggleBtn">За овој проект и податоците →</button>
+    </div>
+  </div>
+
+  <!-- INFO / ABOUT SCREEN -->
+  <div id="screen-info" class="screen info-screen" style="display:none;">
+    <div class="topbar">
+      <button class="back-btn" onclick="goTo('home')" aria-label="Назад">←</button>
+      <span class="title">За проектот и податоците</span>
+    </div>
+
+    <div class="info-scroll">
+
+      <div class="info-section">
+        <h3>🎯 Целта на проектот</h3>
+        <p>Целта е да се адресираат теми поврзани со здравјето и добросостојбата на младите идентификувани во HBSC студијата — конкретно, стрес/анксиозност и осаменост/недостиг на поддршка.</p>
+        <p>Апликацијата ги комбинира два принципа во еден тек:</p>
+        <ol class="goal-list">
+          <li><strong>Внатрешна регулација</strong> — краток дишен циклус (SOS режим) што помага да се смири нервниот систем во моментот на стрес, пред сè друго.</li>
+          <li><strong>Социјална поврзаност</strong> — простор каде младите можат да дадат и да примат поддршка од врсници, откако ќе се смират.</li>
+        </ol>
+        <p>Овој редослед — прво смирување, потоа поврзување — е реален терапевтски принцип (self-regulation before social engagement), и е причината зошто двете алатки се дел од иста апликација, а не одвоени решенија.</p>
+      </div>
+
+      <hr class="info-divider">
+
+      <div class="info-section">
+        <h3>📊 Притисок од училиште</h3>
+        <p>Притисокот од училишни обврски значително се зголемил кај адолесцентите во последните години, особено кај постарите девојчиња.</p>
+        <div class="stat-grid">
+          <div class="stat-card">
+            <span class="num">63%</span>
+            <span class="lbl">од 15-годишни девојчиња се чувствуваат притиснати од училишни обврски</span>
+          </div>
+          <div class="stat-card coral">
+            <span class="num">↑</span>
+            <span class="lbl">нагло зголемување на притисокот особено по 2018 година</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="info-section">
+        <h3>😔 Расположение и психичка состојба</h3>
+        <p>Покрај училишниот стрес, значителен дел од адолесцентите пријавуваат чести физички и психички симптоми поврзани со лошо расположение:</p>
+        <div class="stat-grid">
+          <div class="stat-card coral">
+            <span class="num">33%</span>
+            <span class="lbl">чувствуваат нервоза или раздразливост повеќе од еднаш неделно</span>
+          </div>
+          <div class="stat-card coral">
+            <span class="num">25%</span>
+            <span class="lbl">пријавуваат чувство на тага/потиштеност (feeling low)</span>
+          </div>
+          <div class="stat-card">
+            <span class="num">29%</span>
+            <span class="lbl">имаат тешкотии со спиење</span>
+          </div>
+          <div class="stat-card">
+            <span class="num">20%</span>
+            <span class="lbl">имаат чести главоболки, повеќе од еднаш неделно</span>
+          </div>
+        </div>
+        <p style="margin-top:10px;">Овие симптоми се почести и посилни кај девојчињата, а зачестеноста расте со возраста — на 15-годишна возраст, околу две третини од девојчињата пријавуваат повеќекратни здравствени тегоби, наспроти малку над третина од момчињата.</p>
+      </div>
+
+      <div class="info-section">
+        <h3>🤝 Осаменост и поддршка</h3>
+        <p>Чувството на осаменост расте со возраста и е поизразено кај девојчињата:</p>
+        <div class="stat-grid">
+          <div class="stat-card mint">
+            <span class="num">28%</span>
+            <span class="lbl">од 15-годишни девојчиња пријавиле чувство на осаменост во последната година (наспроти 13% кај момчињата)</span>
+          </div>
+          <div class="stat-card mint">
+            <span class="num">58%</span>
+            <span class="lbl">имаат високо ниво на поддршка од врсници — во пад од претходните години</span>
+          </div>
+        </div>
+        <p style="margin-top:10px;">Дополнително, <strong>11%</strong> од адолесцентите пријавуваат дека биле малтретирани во училиште, а <strong>15%</strong> дека доживеале сајбер-малтретирање — уште една причина зошто просторот за меѓусебна поддршка е важен, не само за оние што бараат помош, туку и за оние што ја даваат.</p>
+      </div>
+
+      <div class="info-section">
+        <h3>📈 Преглед на состојбите</h3>
+        <p>Истиот пресек на податоци, во едно место:</p>
+        <div class="bar-chart" id="barChart">
+          <div class="bar-row">
+            <span class="bar-label">Притисок од училиште (15г. девојчиња)</span>
+            <div class="bar-track"><div class="bar-fill amber" style="--pct:63%"></div></div>
+            <span class="bar-value">63%</span>
+          </div>
+          <div class="bar-row">
+            <span class="bar-label">Поддршка од врсници</span>
+            <div class="bar-track"><div class="bar-fill mint" style="--pct:58%"></div></div>
+            <span class="bar-value">58%</span>
+          </div>
+          <div class="bar-row">
+            <span class="bar-label">Нервоза / раздразливост</span>
+            <div class="bar-track"><div class="bar-fill coral" style="--pct:33%"></div></div>
+            <span class="bar-value">33%</span>
+          </div>
+          <div class="bar-row">
+            <span class="bar-label">Осаменост (15г. девојчиња)</span>
+            <div class="bar-track"><div class="bar-fill coral" style="--pct:28%"></div></div>
+            <span class="bar-value">28%</span>
+          </div>
+          <div class="bar-row">
+            <span class="bar-label">Тешкотии со спиење</span>
+            <div class="bar-track"><div class="bar-fill amber" style="--pct:29%"></div></div>
+            <span class="bar-value">29%</span>
+          </div>
+          <div class="bar-row">
+            <span class="bar-label">Чувство на тага/потиштеност</span>
+            <div class="bar-track"><div class="bar-fill coral" style="--pct:25%"></div></div>
+            <span class="bar-value">25%</span>
+          </div>
+          <div class="bar-row">
+            <span class="bar-label">Чести главоболки</span>
+            <div class="bar-track"><div class="bar-fill amber" style="--pct:20%"></div></div>
+            <span class="bar-value">20%</span>
+          </div>
+        </div>
+      </div>
+
+      <hr class="info-divider">
+
+      <div class="info-section closing-note">
+        <h3>💛 Најважно</h3>
+        <p>Сите овие состојби — стрес, лошо расположение, немир, осаменост — се <strong>нормални и секојдневни</strong> искуства за многу млади луѓе. Не значи дека нешто не е во ред со тебе. Токму затоа е направена оваа апликација — за да имаш каде барем накратко да се смириш и да прочиташ некој добар совет во моментот кога ти е најтешко.</p>
+      </div>
+
+      <span class="src">Извор: HBSC International Report 2021/2022 (Health Behaviour in School-aged Children study), WHO Regional Office for Europe — податоците се меѓународни просеци од земјите опфатени со студијата, не се специфични само за Северна Македонија.</span>
+    </div>
+  </div>
+
+  <!-- BREATHING SCREEN -->
+  <div id="screen-breathe" class="screen breathe-screen" style="display:none;">
+    <div class="topbar">
+      <button class="back-btn" onclick="goTo('home')" aria-label="Назад">←</button>
+      <span class="title">SOS дишење</span>
+    </div>
+
+    <div id="breatheActive" class="breathe-stage">
+      <div class="breath-ring-wrap">
+        <div class="breath-ring-outer"></div>
+        <div class="breath-circle" id="breathCircle"></div>
+      </div>
+      <div class="breath-word" id="breathWord">Подготви се...</div>
+      <div class="breath-count" id="breathCount">Циклус 1 од 3</div>
+      <div class="cycle-dots">
+        <span id="dot0"></span><span id="dot1"></span><span id="dot2"></span>
+      </div>
+    </div>
+
+    <div id="breatheDone" class="breathe-complete" style="display:none;">
+      <div class="icon">🌿</div>
+      <h2>Убава работа.</h2>
+      <p>Го заврши циклусот на смирување. Забележуваш ли мала промена во телото?<br>Сега сакаш да споделиш како се чувствуваш?</p>
+      <button class="primary-btn" onclick="goTo('wall')">Оди на Ѕидот на љубезност</button>
+      <button class="ghost-btn" onclick="restartBreathing()">Повтори го дишењето</button>
+    </div>
+  </div>
+
+  <!-- KINDNESS WALL SCREEN -->
+  <div id="screen-wall" class="screen wall-screen" style="display:none;">
+    <div class="topbar">
+      <button class="back-btn" onclick="goTo('home')" aria-label="Назад">←</button>
+      <span class="title">Ѕид на љубезност</span>
+    </div>
+
+    <div class="wall-intro">
+      <h2>Остави порака за некого 💛</h2>
+      <p>Напиши нешто охрабрувачко — за себе или за некој друг ученик. Ќе се појави меѓу пораките подолу.</p>
+    </div>
+
+    <div class="wall-canvas" id="wallCanvas"></div>
+
+    <div class="wall-input-row">
+      <textarea id="wallInput" maxlength="140" placeholder="На пр. Не си сам/а во ова..."></textarea>
+      <button class="send-btn" onclick="sendMessage()" aria-label="Испрати">➤</button>
+    </div>
+    <div class="send-hint">Пораките се анонимни и се гледаат само во оваа демо-верзија.</div>
+  </div>
+
+</div>
+
+<div class="echo-toast" id="echoToast">
+  <span class="eb">Порака за тебе</span>
+  <span id="echoText"></span>
+</div>
+
+<script>
+/* ---------- ambient fireflies ---------- */
+const fireflyLayer = document.getElementById('fireflies');
+for(let i=0;i<16;i++){
+  const f = document.createElement('div');
+  f.className='firefly';
+  const size = 2 + Math.random()*3;
+  f.style.width = size+'px';
+  f.style.height = size+'px';
+  f.style.left = Math.random()*100+'vw';
+  f.style.top = (60+Math.random()*40)+'vh';
+  f.style.animationDuration = (10+Math.random()*10)+'s';
+  f.style.animationDelay = (Math.random()*10)+'s';
+  fireflyLayer.appendChild(f);
+}
+
+/* ---------- navigation ---------- */
+function goTo(screen){
+  document.getElementById('screen-home').style.display = 'none';
+  document.getElementById('screen-breathe').style.display = 'none';
+  document.getElementById('screen-wall').style.display = 'none';
+  document.getElementById('screen-info').style.display = 'none';
+  document.getElementById('screen-'+screen).style.display = 'flex';
+  if(screen === 'breathe'){ restartBreathing(); }
+  if(screen === 'wall'){ initWallIfNeeded(); }
+}
+
+/* ---------- breathing 4-7-8 state machine ---------- */
+let breathTimeouts = [];
+function clearBreathTimeouts(){ breathTimeouts.forEach(t=>clearTimeout(t)); breathTimeouts=[]; }
+
+function restartBreathing(){
+  clearBreathTimeouts();
+  document.getElementById('breatheActive').style.display='flex';
+  document.getElementById('breatheDone').style.display='none';
+  ['dot0','dot1','dot2'].forEach(id=>document.getElementById(id).classList.remove('done'));
+  const circle = document.getElementById('breathCircle');
+  circle.className = 'breath-circle';
+  document.getElementById('breathWord').textContent = 'Подготви се...';
+  document.getElementById('breathCount').textContent = 'Циклус 1 од 3';
+  breathTimeouts.push(setTimeout(()=>runCycle(0), 1200));
+}
+
+function runCycle(cycleIndex){
+  if(cycleIndex >= 3){
+    document.getElementById('breatheActive').style.display='none';
+    document.getElementById('breatheDone').style.display='block';
+    return;
+  }
+  const circle = document.getElementById('breathCircle');
+  const word = document.getElementById('breathWord');
+  const count = document.getElementById('breathCount');
+  count.textContent = 'Циклус ' + (cycleIndex+1) + ' од 3';
+
+  // inhale 4s
+  circle.className = 'breath-circle';
+  word.textContent = 'Вдиши...';
+  breathTimeouts.push(setTimeout(()=>{
+    // hold 7s
+    circle.className = 'breath-circle hold';
+    word.textContent = 'Задржи...';
+    breathTimeouts.push(setTimeout(()=>{
+      // exhale 8s
+      circle.className = 'breath-circle exhale';
+      word.textContent = 'Издиши...';
+      breathTimeouts.push(setTimeout(()=>{
+        document.getElementById('dot'+cycleIndex).classList.add('done');
+        runCycle(cycleIndex+1);
+      }, 8000));
+    }, 7000));
+  }, 4000));
+}
+
+/* ---------- kindness wall ---------- */
+const seedMessages = [
+  "Не си сам/а во ова 💛",
+  "Секој ден е нов почеток.",
+  "Тоа што трае денес, не трае засекогаш.",
+  "Ти си доволен/доволна токму каков/ква си.",
+  "Мала пауза не значи слабост.",
+  "Некој денес се насмевна поради тебе.",
+  "Во ред е да не си во ред понекогаш.",
+  "Твојот труд се забележува, дури и кога мислиш дека не се гледа.",
+  "Дишиш? Значи веќе правиш нешто добро.",
+  "Заслужуваш истата љубезност што ја даваш на другите."
+];
+
+const echoReplies = [
+  "Некој го прочита ова и се насмевна. Фала што сподели.",
+  "Твојата порака веќе лебди меѓу другите — и таа значи нешто.",
+  "Убаво е кога некој сподели вака. Не си сам/а во ова.",
+  "Ова е малата искра што некому можеби му треба денес.",
+  "Забележано. Продолжи да бидеш љубезен/љубезна кон себе исто.",
+];
+
+let wallInitialized = false;
+function initWallIfNeeded(){
+  if(wallInitialized) return;
+  wallInitialized = true;
+  const canvas = document.getElementById('wallCanvas');
+  seedMessages.forEach((msg)=>{
+    const b = document.createElement('div');
+    b.className = 'bubble';
+    b.textContent = msg;
+    b.style.animationDelay = (Math.random()*2)+'s, ' + (Math.random()*2)+'s';
+    canvas.appendChild(b);
+  });
+}
+
+function sendMessage(){
+  const input = document.getElementById('wallInput');
+  const text = input.value.trim();
+  if(!text) return;
+  const canvas = document.getElementById('wallCanvas');
+  const b = document.createElement('div');
+  b.className = 'bubble mine';
+  b.textContent = text;
+  canvas.insertBefore(b, canvas.firstChild);
+  input.value = '';
+  canvas.scrollTop = 0;
+
+  const reply = echoReplies[Math.floor(Math.random()*echoReplies.length)];
+  showEcho(reply);
+}
+
+function showEcho(text){
+  const toast = document.getElementById('echoToast');
+  document.getElementById('echoText').textContent = text;
+  toast.classList.add('show');
+  clearTimeout(showEcho._t);
+  showEcho._t = setTimeout(()=>toast.classList.remove('show'), 4200);
+}
+
+document.getElementById('wallInput').addEventListener('keydown', (e)=>{
+  if(e.key === 'Enter' && !e.shiftKey){
+    e.preventDefault();
+    sendMessage();
+  }
+});
+</script>
+
+</body>
+</html>
