@@ -12,7 +12,7 @@
 
 | Ѕид на љубезност | За проектот и податоците |
 |---|---|
-| ![Ѕид на љубезност](screenshots/03-kindness-wall.png) | ![Инфо екран](screenshots/04-info.png) |
+| ![Ѕид на љубезност](screenshots/03-kindness-wall.png) | ![Инфо екран](screenshots/04-info2.png) |
 
 ---
 
